@@ -1,0 +1,15 @@
+#ifndef __DFO_DEFINES_H__
+#define __DFO_DEFINES_H__
+
+#define MTK_ENABLE_MD5 0
+#define MTK_DT_SUPPORT 0
+#define MTK_TELEPHONY_MODE 1
+#define MTK_SHARE_MODEM_SUPPORT 2
+#define MTK_SHARE_MODEM_CURRENT 2
+#define MTK_ENABLE_MD1 1
+#define MTK_ENABLE_MD2 0
+#define MTK_FIRST_MD 1
+#define MTK_CTA_SUPPORT 0
+#define MTK_AUTOIP_SUPPORT 0
+
+#endif
