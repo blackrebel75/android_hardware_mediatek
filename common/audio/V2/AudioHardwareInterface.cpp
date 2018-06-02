@@ -81,11 +81,11 @@
 // change to 1 to log routing calls
 #define LOG_ROUTING_CALLS 1
 
-namespace android_audio_legacy
-{
+namespace android_audio_legacy {
 
 #if LOG_ROUTING_CALLS
-static const char *routingModeStrings[] = {
+static const char* routingModeStrings[] =
+{
     "OUT OF RANGE",
     "INVALID",
     "CURRENT",
@@ -100,11 +100,8 @@ static const char *routeNone = "NONE";
 static const char *displayMode(int mode)
 {
     if ((mode < AudioSystem::MODE_INVALID) || (mode >= AudioSystem::NUM_MODES))
-        mode = 0;
-    else
-        mode = mode + 3;
-
-    return routingModeStrings[mode];
+        return routingModeStrings[0];
+    return routingModeStrings[mode+3];
 }
 
 #endif
@@ -127,6 +124,7 @@ AudioHardwareInterface *AudioHardwareInterface::create()
 
 }
 
+#if 0
 AudioHardwareInterface *AudioHardwareInterface::A2DPcreate()
 {
     /*
@@ -138,7 +136,7 @@ AudioHardwareInterface *AudioHardwareInterface::A2DPcreate()
 
     return NULL;
 }
-
+#endif
 
 AudioStreamOut::~AudioStreamOut()
 {
@@ -149,19 +147,6 @@ status_t AudioStreamOut::getNextWriteTimestamp(int64_t *timestamp)
 {
     return INVALID_OPERATION;
 }
-
-// default implementation is unsupported
-status_t AudioStreamOut::setCallBack(stream_callback_t callback, void *cookie)
-{
-    return INVALID_OPERATION;
-}
-
-// default implementation is unsupported
-status_t AudioStreamOut::getPresentationPosition(uint64_t *frames, struct timespec *timestamp)
-{
-    return INVALID_OPERATION;
-}
-
 
 AudioStreamIn::~AudioStreamIn() {}
 
@@ -215,17 +200,6 @@ status_t AudioHardwareBase::SetACFPreviewParameter(void *ptr , int len)
 status_t AudioHardwareBase::SetHCFPreviewParameter(void *ptr , int len)
 {
     return NO_ERROR;
-}
-// for open output stream with flag
- AudioStreamOut* AudioHardwareBase::openOutputStreamWithFlag(
-                                 uint32_t devices,
-                                 int *format,
-                                 uint32_t *channels,
-                                 uint32_t *sampleRate,
-                                 status_t *status,
-                                 uint32_t output_flag)
-{
-    return openOutputStream(devices, format, channels, sampleRate, status);
 }
 /////////////////////////////////////////////////////////////////////////
 //    for PCMxWay Interface API ...
@@ -350,6 +324,17 @@ status_t AudioHardwareBase::dumpState(int fd, const Vector<String16> &args)
     ::write(fd, result.string(), result.size());
     dump(fd, args);  // Dump the state of the concrete child.
     return NO_ERROR;
+}
+
+// default implementation calls its "without flags" counterpart
+AudioStreamOut* AudioHardwareInterface::openOutputStreamWithFlags(uint32_t devices,
+                                          audio_output_flags_t flags,
+                                          int *format,
+                                          uint32_t *channels,
+                                          uint32_t *sampleRate,
+                                          status_t *status)
+{
+    return openOutputStream(devices, format, channels, sampleRate, status);
 }
 
 // ----------------------------------------------------------------------------

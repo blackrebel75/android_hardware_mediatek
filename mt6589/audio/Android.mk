@@ -38,7 +38,10 @@ LOCAL_PATH:= $(call my-dir)
 LOCAL_COMMON_PATH:=../../common
 
 include $(CLEAR_VARS)
+include $(LOCAL_PATH)/ProjectConfig.mk
 
+LOCAL_CFLAGS += -DMT6589
+LOCAL_CFLAGS += -DMTK_AUDIO
 
 ifeq ($(strip $(MTK_HIGH_RESOLUTION_AUDIO_SUPPORT)),yes)
     LOCAL_CFLAGS += -DMTK_HD_AUDIO_ARCHITECTURE
@@ -68,24 +71,31 @@ ifeq ($(strip $(MTK_USE_ANDROID_MM_DEFAULT_CODE)),yes)
   LOCAL_CFLAGS += -DANDROID_DEFAULT_CODE
 endif
 
+ifeq ($(strip $(DMNR_TUNNING_AT_MODEMSIDE)),yes)
 LOCAL_CFLAGS += -DDMNR_TUNNING_AT_MODEMSIDE
+endif
 
+  ifeq ($(strip $(MTK_AUDIO_BLOUD_CUSTOMPARAMETER_REV)),MTK_AUDIO_BLOUD_CUSTOMPARAMETER_V4)
+    LOCAL_CFLAGS += -DMTK_AUDIO_BLOUD_CUSTOMPARAMETER_V4
+  endif
+
+MTK_PATH_SOURCE=mediatek
 
 
 $(warning $(TOPDIR))
 
 LOCAL_C_INCLUDES:= \
-    ./$(TOPDIR)/mediatek/frameworks-ext/av \
-    $(TOPDIR)/hardware/libhardware_legacy/include \
-    $(TOPDIR)/hardware/libhardware/include \
-    $(TOPDIR)/frameworks/av/include \
-    $(TOPDIR)/bionic/libc/kernel/common \
+    mediatek/frameworks-ext/av \
+    hardware/libhardware_legacy/include \
+    hardware/libhardware/include \
+    $frameworks/av/include \
+    bionic/libc/kernel/common \
     $(call include-path-for, audio-utils) \
 	$(call include-path-for, audio-effects) \
-    $(TOPDIR)/hardware/mediatek/common/audio/policy_include \
-    $(TOPDIR)/hardware/mediatek/mt6589/audio/include/ \
-    $(TOPDIR)/hardware/mediatek/common/audio/V2/include \
-    $(TOPDIR)/hardware/mediatek/common/audio/include \
+    hardware/mediatek/common/audio/policy_include \
+    hardware/mediatek/mt6589/audio/include/ \
+    hardware/mediatek/common/audio/V2/include \
+    hardware/mediatek/common/audio/include \
     $(MTK_PATH_SOURCE)/external/nvram/libnvram \
     $(MTK_PATH_SOURCE)/external/AudioCompensationFilter \
     $(MTK_PATH_SOURCE)/external/AudioComponentEngine \
@@ -99,12 +109,15 @@ LOCAL_C_INCLUDES:= \
     $(MTK_PATH_SOURCE)/external/audiodcremoveflt \
     $(MTK_PATH_SOURCE)/external/audiocustparam \
     $(MTK_PATH_SOURCE)/external/AudioSpeechEnhancement/inc \
-    $(MTK_PATH_SOURCE)/external/aee/binary/inc \
     $(MTK_PATH_SOURCE)/kernel/include \
     $(MTK_PATH_SOURCE)/external/dfo/featured \
-    $(TARGET_OUT_HEADERS)/dfo \
-    $(TOPDIR)/hardware/mediatek/hal/audioflinger \
-    $(TOPDIR)/hardware/mediatek/hal/audioflinger/audio
+    hardware/mediatek/include/dfo \
+    hardware/mediatek/hal/audioflinger \
+    hardware/mediatek/hal/audioflinger/audio \
+    hardware/mediatek/include/inc \
+    hardware/mediatek/include/inc/audio \
+    hardware/mediatek/include/cfgfileinc \
+    hardware/mediatek/include/cfgdefault
 
 LOCAL_SRC_FILES+= \
     $(LOCAL_COMMON_PATH)/audio/policy_driver/audio_hw_hal.cpp \
@@ -114,7 +127,6 @@ LOCAL_SRC_FILES+= \
     $(LOCAL_COMMON_PATH)/audio/aud_drv/AudioFtmBase.cpp \
     $(LOCAL_COMMON_PATH)/audio/V2/AudioHardwareInterface.cpp \
     $(LOCAL_COMMON_PATH)/audio/V2/aud_drv/AudioAnalogControlFactory.cpp \
-    $(LOCAL_COMMON_PATH)/audio/V2/aud_drv/AudioAnalogFactory.cpp \
     $(LOCAL_COMMON_PATH)/audio/V2/aud_drv/AudioDigitalControlFactory.cpp \
     $(LOCAL_COMMON_PATH)/audio/V2/aud_drv/AudioMTKStreamManager.cpp \
     $(LOCAL_COMMON_PATH)/audio/V2/aud_drv/AudioMTKStreamManagerBase.cpp \
@@ -311,6 +323,7 @@ endif
 
 LOCAL_ARM_MODE := arm
 LOCAL_MODULE := libaudio.primary.default
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)
@@ -320,6 +333,9 @@ include $(BUILD_SHARED_LIBRARY)
 # policy code
 include $(CLEAR_VARS)
   
+
+LOCAL_CFLAGS += -DMTK_AUDIO
+
 
 ifeq ($(strip $(MTK_HIGH_RESOLUTION_AUDIO_SUPPORT)),yes)
     LOCAL_CFLAGS += -DMTK_HD_AUDIO_ARCHITECTURE
@@ -341,16 +357,18 @@ ifeq ($(strip $(MTK_USE_ANDROID_MM_DEFAULT_CODE)),yes)
   LOCAL_CFLAGS += -DANDROID_DEFAULT_CODE
 endif
 
+MTK_PATH_SOURCE=mediatek
+
 LOCAL_C_INCLUDES:= \
-    ./$(TOPDIR)/mediatek/frameworks-ext/av \
-    $(TOPDIR)/hardware/libhardware_legacy/include \
-    $(TOPDIR)/hardware/libhardware/include \
-    $(TOPDIR)/frameworks/av/include \
-    $(TOPDIR)/bionic/libc/kernel/common \
-    $(MTK_PATH_SOURCE)/platform/common/audio/policy_include \
-    $(MTK_PATH_PLATFORM)/audio/include \
-    $(MTK_PATH_SOURCE)/platform/common/audio/V2/include \
-    $(MTK_PATH_SOURCE)/platform/common/audio/include \
+    mediatek/frameworks-ext/av \
+    hardware/libhardware_legacy/include \
+    hardware/libhardware/include \
+    frameworks/av/include \
+    bionic/libc/kernel/common \
+    hardware/mediatek/common/audio/policy_include \
+    hardware/mediatek/mt6589/audio/include \
+    hardware/mediatek/common/audio/V2/include \
+    hardware/mediatek/common/audio/include \
     $(MTK_PATH_SOURCE)/external/nvram/libnvram \
     $(MTK_PATH_SOURCE)/external/AudioCompensationFilter \
     $(MTK_PATH_SOURCE)/external/AudioComponentEngine \
@@ -361,19 +379,23 @@ LOCAL_C_INCLUDES:= \
     $(MTK_PATH_SOURCE)/frameworks-ext/av/include/media \
     $(MTK_PATH_SOURCE)/frameworks-ext/av/include \
     $(MTK_PATH_SOURCE)/external/audiodcremoveflt \
-    $(MTK_PATH_SOURCE)/external/aee/binary/inc \
     $(MTK_PATH_SOURCE)/external/dfo/featured \
-    $(TARGET_OUT_HEADERS)/dfo \
     $(MTK_PATH_SOURCE)/kernel/include \
-    $(MTK_ROOT_CUSTOM_OUT)/hal/audioflinger \
-    $(MTK_ROOT_CUSTOM_OUT)/hal/audioflinger/audio
+    hardware/mediatek/include/dfo \
+    hardware/mediatek/hal/audioflinger \
+    hardware/mediatek/hal/audioflinger/audio \
+    hardware/mediatek/include/inc \
+    hardware/mediatek/include/inc/audio \
+    hardware/mediatek/include/cfgfileinc \
+    hardware/mediatek/include/cfgdefault
 
 LOCAL_SRC_FILES := \
-    $(LOCAL_COMMON_PATH)/audio/policy_driver/AudioPolicyManagerBase.cpp \
     $(LOCAL_COMMON_PATH)/audio/policy_driver/AudioPolicyCompatClient.cpp \
     $(LOCAL_COMMON_PATH)/audio/policy_driver/audio_policy_hal.cpp \
-    $(LOCAL_COMMON_PATH)/audio/policy_driver/AudioPolicyManagerDefault.cpp \
-    $(LOCAL_COMMON_PATH)/audio/policy_driver/AudioMTKPolicyManager.cpp
+    $(LOCAL_COMMON_PATH)/audio/policy_driver/AudioMTKPolicyManager.cpp \
+    $(LOCAL_COMMON_PATH)/audio/policy_driver/AudioPolicyManagerDefault.cpp 
+#    $(LOCAL_COMMON_PATH)/audio/policy_driver/AudioMTKPolicyManager.cpp
+#    $(LOCAL_COMMON_PATH)/audio/policy_driver/AudioPolicyManagerBase.cpp \
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \

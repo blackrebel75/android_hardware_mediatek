@@ -231,12 +231,12 @@ status_t AudioMTKHardware::SetAudioCommonCommand(int par1, int par2)
             if (par2 == 0)
             {
                 property_set("streamout.pcm.dump", "0");
-                ::ioctl(mFd, AUDDRV_AEE_IOCTL, 0);
+                //::ioctl(mFd, AUDDRV_AEE_IOCTL, 0);
             }
             else
             {
                 property_set("streamout.pcm.dump", "1");
-                ::ioctl(mFd, AUDDRV_AEE_IOCTL, 1);
+                //::ioctl(mFd, AUDDRV_AEE_IOCTL, 1);
             }
             break;
         }
@@ -1811,6 +1811,830 @@ String8 AudioMTKHardware::getCommonParameters(AudioParameter &param, AudioParame
     return keyValuePairs;
 }
 
+status_t AudioMTKHardware::setMasterMute(bool muted)
+{
+    return INVALID_OPERATION;
+}
+
+
+#define FM_DEVICE_TO_DEVICE_SUPPORT_OUTPUT_DEVICES (AUDIO_DEVICE_OUT_SPEAKER | AUDIO_DEVICE_OUT_WIRED_HEADSET | AUDIO_DEVICE_OUT_WIRED_HEADPHONE)
+const char* strAudioPatchRole[]={"AUDIO_PORT_ROLE_NONE","AUDIO_PORT_ROLE_SOURCE","AUDIO_PORT_ROLE_SINK"};
+const char* strAudioPatchType[]={"AUDIO_PORT_TYPE_NONE","AUDIO_PORT_TYPE_DEVICE","AUDIO_PORT_TYPE_MIX","AUDIO_PORT_TYPE_SESSION"};
+
+int AudioMTKHardware::createAudioPatch(unsigned int num_sources,
+                                       const struct audio_port_config *sources,
+                                       unsigned int num_sinks,
+                                       const struct audio_port_config *sinks,
+                                       audio_patch_handle_t *handle)
+{
+    int status = NO_ERROR;
+    ALOGD("+%s num_sources [%d] , num_sinks [%d]", __FUNCTION__, num_sources, num_sinks);
+#if 1 //Debug
+    //ALOGD("+%s num_sources [%d] , num_sinks [%d]", __FUNCTION__, num_sources, num_sinks);
+    if (handle == NULL || sources == NULL || sinks == NULL)
+    {
+        ALOGW("Ptr is null");
+        return BAD_VALUE;
+    }
+    ALOGD("handlecheck %s handle [0x%x] current size %d",__FUNCTION__, *handle,mAudioHalPatchVector.size());
+    int i = 0, j = 0;
+
+    for (i = 0; i < num_sources ; i++)
+    {
+        ALOGD("== source [%d]/[%d] ==", i, num_sources);
+        ALOGD("id 0x%x", sources[i].id);
+        ALOGD("role 0x%x %s", sources[i].role,strAudioPatchRole[sources[i].role]);
+        ALOGD("type 0x%x %s", sources[i].type,strAudioPatchType[sources[i].type]);
+        ALOGD("config_mask 0x%x", sources[i].config_mask);
+        ALOGD("sample_rate 0x%x", sources[i].sample_rate);
+        ALOGD("channel_mask 0x%x", sources[i].channel_mask);
+        ALOGD("gain.index 0x%x", sources[i].gain.index);
+        ALOGD("gain.mode 0x%x", sources[i].gain.mode);
+        ALOGD("gain.channel_mask 0x%x", sources[i].gain.channel_mask);
+        ALOGD("gain.ramp_duration_ms 0x%x", sources[i].gain.ramp_duration_ms);
+#if 0 //When gain check , enable        
+        for (j = 0; j < sizeof(audio_channel_mask_t) * 8; j++)
+        {
+            ALOGD("gain.values[%d] 0x%x", j, sources[i].gain.values[j]);
+        }
+#endif
+        if (sources[i].type == AUDIO_PORT_TYPE_DEVICE)
+        {
+            ALOGD("device.hw_module %x", sources[i].ext.device.hw_module);
+            ALOGD("device.type %x", sources[i].ext.device.type);
+            ALOGD("device.address %s", sources[i].ext.device.address);
+        }
+        else if (sources[i].type == AUDIO_PORT_TYPE_MIX)
+        {
+            ALOGD("mix.hw_module %x", sources[i].ext.mix.hw_module);
+            ALOGD("mix.handle %x", sources[i].ext.mix.handle);
+            ALOGD("mix.usecase.stream %x", sources[i].ext.mix.usecase.stream);
+            ALOGD("mix.usecase.source %x", sources[i].ext.mix.usecase.source);
+        }
+        else if (sources[i].type == AUDIO_PORT_TYPE_SESSION)
+        {
+
+        }
+
+    }
+
+    for (i = 0; i < num_sinks ; i++)
+    {
+        ALOGD("== sinks [%d]/[%d] ==", i, num_sinks);
+        ALOGD("id 0x%x", sinks[i].id);
+        ALOGD("role 0x%x %s", sinks[i].role,strAudioPatchRole[sinks[i].role]);
+        ALOGD("type 0x%x %s", sinks[i].type,strAudioPatchType[sinks[i].type]);
+        ALOGD("config_mask 0x%x", sinks[i].config_mask);
+        ALOGD("sample_rate 0x%x", sinks[i].sample_rate);
+        ALOGD("channel_mask 0x%x", sinks[i].channel_mask);
+        ALOGD("gain.index 0x%x", sinks[i].gain.index);
+        ALOGD("gain.mode 0x%x", sinks[i].gain.mode);
+        ALOGD("gain.channel_mask 0x%x", sinks[i].gain.channel_mask);
+        ALOGD("gain.ramp_duration_ms 0x%x", sinks[i].gain.ramp_duration_ms);
+#if 0 //When gain check , enable       
+        for (j = 0; j < sizeof(audio_channel_mask_t) * 8; j++)
+        {
+            ALOGD("gain.values[%d] 0x%x", j, sinks[i].gain.values[j]);
+        }
+#endif
+        if (sinks[i].type == AUDIO_PORT_TYPE_DEVICE)
+        {
+            ALOGD("device.hw_module %x", sinks[i].ext.device.hw_module);
+            ALOGD("device.type %x", sinks[i].ext.device.type);
+            ALOGD("device.address %s", sinks[i].ext.device.address);
+        }
+        else if (sinks[i].type == AUDIO_PORT_TYPE_MIX)
+        {
+            ALOGD("mix.hw_module %x", sinks[i].ext.mix.hw_module);
+            ALOGD("mix.handle %x", sinks[i].ext.mix.handle);
+            ALOGD("mix.usecase.stream %x", sinks[i].ext.mix.usecase.stream);
+            ALOGD("mix.usecase.source %x", sinks[i].ext.mix.usecase.source);
+        }
+        else if (sinks[i].type == AUDIO_PORT_TYPE_SESSION)
+        {
+
+        }
+    }
+
+
+#endif
+#if 1
+//    ALOGD("+%s num_sources [%d] , num_sinks [%d]", __FUNCTION__, num_sources, num_sinks);
+    audio_devices_t eOutDeviceList = AUDIO_DEVICE_NONE;
+    audio_devices_t eInputDeviceList = AUDIO_DEVICE_NONE;
+    audio_source_t eInputSource = AUDIO_SOURCE_DEFAULT;
+    do
+    {
+        if (handle == NULL || sources == NULL || sinks == NULL)
+        {
+            ALOGW("Ptr is null");
+            status = BAD_VALUE;
+            break;
+        }
+        // We can support legacy routing with setting single source or single sink
+        if ((!num_sources && !num_sinks) || (num_sources > 1) || (num_sinks > AUDIO_PATCH_PORTS_MAX))
+        {
+            ALOGW("num is invalid");
+            status = BAD_VALUE;
+            break;
+        }
+
+        if (sources[0].type == AUDIO_PORT_TYPE_MIX)
+        {
+
+            if (sinks[0].type != AUDIO_PORT_TYPE_DEVICE)
+            {
+                ALOGW("sinks[0].type != AUDIO_PORT_TYPE_DEVICE");
+                status = BAD_VALUE;
+                break;
+            }
+
+            int dDeviceIndex;
+
+            for (dDeviceIndex = 0; dDeviceIndex < num_sinks; dDeviceIndex++)
+            {
+                eOutDeviceList |= sinks[dDeviceIndex].ext.device.type;
+            }
+            if (eOutDeviceList == AUDIO_DEVICE_NONE)
+            {
+                ALOGW("Mixer->Device Routing to AUDIO_DEVICE_NONE");
+                status = BAD_VALUE;
+                break;
+            }
+#if 0
+            if (eOutDeviceList == AUDIO_DEVICE_OUT_SPEAKER)
+            {
+                for (ssize_t index = mAudioHalPatchVector.size()-1; index >= 0; index--)
+                {
+                    for (int sink_i=0;sink_i<mAudioHalPatchVector[index]->num_sources;sink_i++)
+                    {
+                        for (int source_i=0;source_i<mAudioHalPatchVector[index]->num_sources;source_i++)
+                        {
+                            if ((mAudioHalPatchVector[index]->sources[source_i].type == AUDIO_PORT_TYPE_DEVICE) &&
+                                (mAudioHalPatchVector[index]->sources[source_i].ext.device.type == AUDIO_DEVICE_IN_FM_TUNER) &&
+                                (mAudioHalPatchVector[index]->sinks[sink_i].type == AUDIO_PORT_TYPE_DEVICE) &&
+                                (mAudioHalPatchVector[index]->sinks[sink_i].ext.device.type == AUDIO_DEVICE_OUT_WIRED_HEADPHONE
+                                ||mAudioHalPatchVector[index]->sinks[sink_i].ext.device.type == AUDIO_DEVICE_OUT_WIRED_HEADSET) )
+                            {
+                                ALOGD("Mute FM");
+                                //AudioFMController::GetInstance()->SetFmVolume(0.0,true);//For be sure mFmVolume doesn't equal to -1.0
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+#endif
+            ALOGD("+routing createAudioPatch Mixer->%x",eOutDeviceList);
+            AudioParameter param;
+            param.addInt(String8(AudioParameter::keyRouting), (int)eOutDeviceList);
+            status = mAudioMTKStreamManager->setParameters(param.toString(),
+                sources[0].ext.mix.handle);
+            if (status == NO_ERROR)
+            {
+                ssize_t index;
+                ssize_t total = mAudioHalPatchVector.size();
+                for (index = total-1;index >= 0; index--)
+                {
+
+                    if (mAudioHalPatchVector[index]->sources[0].type == AUDIO_PORT_TYPE_MIX &&
+                        mAudioHalPatchVector[index]->sinks[0].type == AUDIO_PORT_TYPE_DEVICE &&
+                        sources[0].ext.mix.handle == mAudioHalPatchVector[index]->sources[0].ext.mix.handle)
+                    {
+                        AudioHalPatch *patch;
+                        patch = mAudioHalPatchVector[index];
+                        ALOGD("handlecheck createAudioPatch() removing patch handle %d index %u DL", mAudioHalPatchVector[index]->mHalHandle,index);
+                        mAudioHalPatchVector.removeAt(index);
+                        delete(patch);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                ALOGE("Err %s %d",__FUNCTION__,__LINE__);
+            }
+
+        }
+        else if (sources[0].type == AUDIO_PORT_TYPE_DEVICE)
+        {
+
+            if (sinks[0].type == AUDIO_PORT_TYPE_MIX)
+            {
+
+                eInputDeviceList = sources[0].ext.device.type;
+                eInputSource = sinks[0].ext.mix.usecase.source;
+                ALOGD("+routing createAudioPatch %x->Mixer Src %x",
+                        eInputDeviceList,eInputSource);
+                AudioParameter param;
+                param.addInt(String8(AudioParameter::keyRouting), (int)eInputDeviceList);
+                param.addInt(String8(AudioParameter::keyInputSource),
+                             (int)eInputSource);
+
+                status = mAudioMTKStreamManager->setParameters(param.toString(),
+                    sinks[0].ext.mix.handle);
+
+                if (status == NO_ERROR)
+                {
+                    ssize_t index;
+                    ssize_t total = mAudioHalPatchVector.size();
+                    for (index = total-1;index >= 0; index--)
+                    {
+
+                        if (mAudioHalPatchVector[index]->sources[0].type == AUDIO_PORT_TYPE_DEVICE &&
+                            mAudioHalPatchVector[index]->sinks[0].type == AUDIO_PORT_TYPE_MIX &&
+                            sinks[0].ext.mix.handle == mAudioHalPatchVector[index]->sinks[0].ext.mix.handle)
+                        {
+                            AudioHalPatch *patch;
+                            patch = mAudioHalPatchVector[index];
+                            ALOGD("handlecheck createAudioPatch() removing patch handle %d index %u UL", mAudioHalPatchVector[index]->mHalHandle,index);
+                            mAudioHalPatchVector.removeAt(index);
+                            delete(patch);
+                            break;
+                        }
+                    }
+
+                    if (eInputDeviceList == AUDIO_DEVICE_IN_FM_TUNER)
+                    {
+                        if (mUseAudioPatchForFm == true)
+                        {
+                            status = AudioFMController::GetInstance()->SetFmEnable(true,true,false);
+                        }
+                    }
+                }
+                else
+                {
+                    ALOGE("Err %s %d",__FUNCTION__,__LINE__);
+                }
+
+            }
+            else if (sinks[0].type == AUDIO_PORT_TYPE_DEVICE)
+            {
+                ALOGW("sinks[0].type == AUDIO_PORT_TYPE_DEVICE");
+                // DO Device to Device
+                eInputDeviceList = sources[0].ext.device.type;
+                int dDeviceIndex;
+
+                for (dDeviceIndex = 0; dDeviceIndex < num_sinks; dDeviceIndex++)
+                {
+                    eOutDeviceList |= sinks[dDeviceIndex].ext.device.type; //should be only one device , limited by frameworks
+                }
+
+                if (eInputDeviceList != AUDIO_DEVICE_IN_FM_TUNER ||
+                    !(eOutDeviceList & FM_DEVICE_TO_DEVICE_SUPPORT_OUTPUT_DEVICES))
+                {
+                    ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                    status = INVALID_OPERATION;
+                    break;
+                }
+                else if (eInputDeviceList == AUDIO_DEVICE_IN_FM_TUNER)
+                {
+                    if (AudioFMController::GetInstance()->CheckFmNeedUseDirectConnectionMode() == false)
+                    {
+                        ALOGW("[%s] [%d] InDirectConnectionMode", __FUNCTION__, __LINE__);
+                        status = INVALID_OPERATION;
+                        break;
+                    }
+
+                    if (mUseAudioPatchForFm == false)
+                    {
+                        ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                        status = INVALID_OPERATION;
+                        break;
+                    }
+
+                    // routing
+                    for (dDeviceIndex = 0; dDeviceIndex < num_sinks; dDeviceIndex++)
+                    {
+                        eOutDeviceList |= sinks[dDeviceIndex].ext.device.type;
+                    }
+
+                    AudioParameter param;
+                    param.addInt(String8(AudioParameter::keyRouting), (int)eOutDeviceList);
+                    //status = mAudioMTKStreamManager->setParameters(param.toString(), sources[0].ext.mix.handle);
+                    //The sources[0].ext.mix.handle doesn't record IOport
+                    status = mAudioMTKStreamManager->setParametersToStreamOut(param.toString());
+
+                    if (status != NO_ERROR)
+                    {
+                        ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                        break;
+                    }
+
+                    ALOGD("+routing createAudioPatch %x->%x",eInputDeviceList,eOutDeviceList);
+                    AudioFMController::GetInstance()->SetFmVolume(0);//initial value is -1 , should change it first
+                    // FM enable
+                    AudioFMController::GetInstance()->SetFmEnable(false);// make sure FM disable first (FM App non-sync issue)
+                    status = AudioFMController::GetInstance()->SetFmEnable(true,true,true);
+                    //FMTODO : Gain setting
+                    break;
+                }
+            }
+
+        }
+
+
+
+    }
+    while (0);
+
+    if (status == NO_ERROR)
+    {
+        *handle = android_atomic_inc(&mNextUniqueId);
+        AudioHalPatch *newPatch = new AudioHalPatch(*handle);
+        newPatch->num_sources = num_sources;
+        newPatch->num_sinks = num_sinks;
+        for (unsigned int index = 0; index < num_sources ; index++)
+        {
+            memcpy((void *)&newPatch->sources[index], (void *)&sources[index],
+                sizeof(struct audio_port_config));
+        }
+        for (unsigned int index = 0; index < num_sinks ; index++)
+        {
+            memcpy((void *)&newPatch->sinks[index], (void *)&sinks[index],
+                sizeof(struct audio_port_config));
+        }
+        mAudioHalPatchVector.add(newPatch);
+
+        ALOGD("handlecheck %s sucess new *handle 0x%x",__FUNCTION__, (int)(*handle));
+    }
+    else
+    {
+        ALOGD("Fail status %d", (int)(status));
+    }
+    ALOGD("-%s num_sources [%d] , num_sinks [%d]", __FUNCTION__, num_sources, num_sinks);
+#endif
+    return status;
+}
+
+int AudioMTKHardware::releaseAudioPatch(audio_patch_handle_t handle)
+{
+    //TODO
+    int status = NO_ERROR;
+    ssize_t index;
+    bool bReturnFlag = false;
+    AudioHalPatch *patch;
+    ALOGD("handlecheck %s handle [0x%x]", __FUNCTION__, handle);
+    do
+    {
+
+        if (handle == AUDIO_PATCH_HANDLE_NONE)
+        {
+            ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+            status = BAD_VALUE;
+            return status;
+        }
+
+        for (index = 0; index < mAudioHalPatchVector.size(); index++)
+        {
+            if (handle == mAudioHalPatchVector[index]->mHalHandle)
+            {
+                break;
+            }
+        }
+        if (index == mAudioHalPatchVector.size())
+        {
+            ALOGW("handlecheck %s [%d] null %d", __FUNCTION__, __LINE__,mAudioHalPatchVector.size());
+            status = INVALID_OPERATION;
+            return status;
+        }
+
+        patch = mAudioHalPatchVector[index];
+        mAudioHalPatchVector.removeAt(index);
+
+        if (patch->sources[0].type == AUDIO_PORT_TYPE_MIX)
+        {
+
+            if (patch->sinks[0].type != AUDIO_PORT_TYPE_DEVICE)
+            {
+                ALOGW("sinks[0].type != AUDIO_PORT_TYPE_DEVICE");
+                status = BAD_VALUE;
+                break;
+            }
+            ALOGD("+routing releaseAudioPatch Mixer->%x",patch->sinks[0].ext.device.type);
+            for (index = mAudioHalPatchVector.size()-1; index >= 0; index--)
+            {
+                for (int sink_i=0;sink_i<mAudioHalPatchVector[index]->num_sinks;sink_i++)
+                {
+                    if ((mAudioHalPatchVector[index]->sinks[sink_i].type == AUDIO_PORT_TYPE_DEVICE) &&
+                        (mAudioHalPatchVector[index]->sinks[sink_i].ext.device.type != AUDIO_DEVICE_NONE))
+                    {
+                            ALOGD("Still have AudioPatches routing to outputDevice, Don't routing null Size %d",mAudioHalPatchVector.size());
+                            status = NO_ERROR;
+                            bReturnFlag = true;
+                            break;
+                    }
+                }
+            }
+            if (bReturnFlag)
+                break;
+#if 0   //Policy doesn't change to none , it will non-sync
+            AudioParameter param;
+            param.addInt(String8(AudioParameter::keyRouting), (int)AUDIO_DEVICE_NONE);
+            status = mAudioMTKStreamManager->setParameters(param.toString(),
+                patch->sources[0].ext.mix.handle);
+#endif
+        }
+        else if (patch->sources[0].type == AUDIO_PORT_TYPE_DEVICE)
+        {
+
+            if (patch->sinks[0].type == AUDIO_PORT_TYPE_MIX)
+            {
+                // close FM if need (indirect)
+                    ALOGD("+routing releaseAudioPatch %x->Mixer",patch->sources[0].ext.device.type);
+                    if (mUseAudioPatchForFm == true)
+                    {
+                        if (patch->sources[0].ext.device.type == AUDIO_DEVICE_IN_FM_TUNER)
+                        {
+                                for (index = mAudioHalPatchVector.size()-1; index >= 0; index--)
+                                {
+                                    for (int source_i=0;source_i<mAudioHalPatchVector[index]->num_sources;source_i++)
+                                    {
+                                        if ((mAudioHalPatchVector[index]->sources[source_i].type == AUDIO_PORT_TYPE_DEVICE) &&
+                                            (mAudioHalPatchVector[index]->sources[source_i].ext.device.type == AUDIO_DEVICE_IN_FM_TUNER))
+                                        {
+                                                ALOGD("Still have AudioPatches need  AUDIO_DEVICE_IN_FM_TUNER, Don't Disable FM [%d]",
+                                                    mAudioHalPatchVector.size());
+                                                status = NO_ERROR;
+                                                bReturnFlag = true;
+                                                break;
+                                        }
+                                    }
+                                }
+                                if (!bReturnFlag)
+                                    status = AudioFMController::GetInstance()->SetFmEnable(false);
+                        }
+                    }
+
+                audio_devices_t eInDeviceList = AUDIO_DEVICE_NONE;
+                for (index = mAudioHalPatchVector.size()-1; index >= 0; index--)
+                {
+                    for (int source_i=0;source_i<mAudioHalPatchVector[index]->num_sources;source_i++)
+                    {
+                        if ((mAudioHalPatchVector[index]->sources[source_i].type == AUDIO_PORT_TYPE_DEVICE) &&
+                            (mAudioHalPatchVector[index]->sources[source_i].ext.device.type != AUDIO_DEVICE_NONE))
+                        {
+                                eInDeviceList = mAudioHalPatchVector[index]->sources[source_i].ext.device.type;
+                                ALOGD("Still have AudioPatches need  routing input device, Don't change routing [%d]"
+                                    ,mAudioHalPatchVector.size());
+                                status = NO_ERROR;
+                                //bReturnFlag = true;
+                                break;
+                        }
+                    }
+                }
+                //if (bReturnFlag)
+                     //break;
+                AudioParameter param;
+                param.addInt(String8(AudioParameter::keyRouting), (int)eInDeviceList);
+                status = mAudioMTKStreamManager->setParameters(param.toString(),
+                    patch->sinks[0].ext.mix.handle);
+            }
+            else if (patch->sinks[0].type == AUDIO_PORT_TYPE_DEVICE)
+            {
+                ALOGD("+routing releaseAudioPatch %x->%x",patch->sources[0].ext.device.type,patch->sinks[0].ext.device.type);
+                if ((patch->sources[0].ext.device.type == AUDIO_DEVICE_IN_FM_TUNER) &&
+                    (patch->sinks[0].ext.device.type & FM_DEVICE_TO_DEVICE_SUPPORT_OUTPUT_DEVICES))
+                {
+                    // close FM if need (direct)
+                    if (mUseAudioPatchForFm == false)
+                    {
+                        ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                        status = INVALID_OPERATION;
+                    }
+                    else
+                    {
+#if 0
+                        for (index = mAudioHalPatchVector.size()-1; index >= 0; index--)
+                        {
+                            for (int source_i=0;source_i<mAudioHalPatchVector[index]->num_sources;source_i++)
+                            {
+                                if ((mAudioHalPatchVector[index]->sources[source_i].type == AUDIO_PORT_TYPE_DEVICE) &&
+                                    (mAudioHalPatchVector[index]->sources[source_i].ext.device.type == AUDIO_DEVICE_IN_FM_TUNER))
+                                {
+                                        ALOGD("Still have AudioPatches need  AUDIO_DEVICE_IN_FM_TUNER, Don't Disable FM [%d]",
+                                            mAudioHalPatchVector.size());
+                                        status = NO_ERROR;
+                                        bReturnFlag = true;
+                                        break;
+                                }
+                            }
+                        }
+                        if (!bReturnFlag)
+                        {
+                            AudioFMController::GetInstance()->SetFmVolume(0);
+                            status = AudioFMController::GetInstance()->SetFmEnable(false);
+                        }
+#else
+                        //always disable fm for direct/indirect setting pass
+                        AudioFMController::GetInstance()->SetFmVolume(0);
+                        status = AudioFMController::GetInstance()->SetFmEnable(false);
+#endif
+
+//                        bReturnFlag = false;
+                        audio_devices_t eOutDeviceList = AUDIO_DEVICE_NONE;
+                        //Restore previous output device setting
+                        for (index = mAudioHalPatchVector.size()-1; index >= 0; index--)
+                        {
+                            for (int sink_i=0;sink_i<mAudioHalPatchVector[index]->num_sinks;sink_i++)
+                            {
+                                if ((mAudioHalPatchVector[index]->sinks[sink_i].type == AUDIO_PORT_TYPE_DEVICE) &&
+                                    (mAudioHalPatchVector[index]->sinks[sink_i].ext.device.type != AUDIO_DEVICE_NONE) &&
+                                    (mAudioHalPatchVector[index]->sources[0].type == AUDIO_PORT_TYPE_MIX))
+                                {
+                                        eOutDeviceList = eOutDeviceList|mAudioHalPatchVector[index]->sinks[sink_i].ext.device.type;
+                                        ALOGD("Still have AudioPatches routing to outputDevice, Don't routing null sink_i/Size %d/%d , device 0x%x handle %x",
+                                            sink_i,mAudioHalPatchVector.size(),eOutDeviceList,mAudioHalPatchVector[index]->mHalHandle);
+                                        status = NO_ERROR;
+//                                        bReturnFlag = true;
+                                }
+                            }
+                            if (eOutDeviceList)
+                                    break;
+                        }
+//                        if (bReturnFlag)
+//                            break;
+                        AudioParameter param;
+                        param.addInt(String8(AudioParameter::keyRouting), (int)eOutDeviceList);
+                        status = mAudioMTKStreamManager->setParametersToStreamOut(param.toString());
+
+                    }
+                    break;
+                }
+                else
+                {
+                    ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                    status = INVALID_OPERATION;//TODO
+                    break;
+                }
+
+            }
+        }
+       } while (0);
+
+    if (status == NO_ERROR)
+    {
+        ALOGD("handlecheck %s remove handle [%x] OK",__FUNCTION__,handle);
+        delete(patch);
+    }
+    else
+    {
+        ALOGD("handlecheck %s remove handle [%x] NG",__FUNCTION__,handle);
+        mAudioHalPatchVector.add(patch);
+    }
+    ALOGD("-%s handle [0x%x] status [%d]", __FUNCTION__, handle, status);
+    return status;
+}
+
+
+int AudioMTKHardware::getAudioPort(struct audio_port *port)
+{
+    //TODO , I think the implementation is designed in aps.
+    ALOGW("-%s Unsupport", __FUNCTION__);
+    return INVALID_OPERATION;
+}
+
+// We limit valid for existing Audio port of AudioPatch
+int AudioMTKHardware::setAudioPortConfig(const struct audio_port_config *config)
+{
+    int status = NO_ERROR;
+
+    do
+    {
+
+        if (config == NULL)
+        {
+            ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+            status = BAD_VALUE;
+            break;
+        }
+
+        if ((config->config_mask & AUDIO_PORT_CONFIG_GAIN) == 0)
+        {
+            ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+            status = INVALID_OPERATION;
+            break;
+        }
+        ALOGD("%s",__FUNCTION__);
+        ALOGD("config->type [0x%x]",config->type);
+        ALOGD("config->role [0x%x]",config->role);
+        ALOGD("config->gain.mode [0x%x]",config->gain.mode);
+        ALOGD("config->gain.values[0] [0x%x]",config->gain.values[0]);
+        ALOGD("config->gain.ramp_duration_ms [0x%x]",config->gain.ramp_duration_ms);
+
+        if (config->type == AUDIO_PORT_TYPE_MIX)
+        {
+            if (config->role == AUDIO_PORT_ROLE_SOURCE)
+            {
+                //Apply Gain to MEMIF , don't support it so far
+                ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                status = INVALID_OPERATION;
+                break;
+            }
+            if (config->role == AUDIO_PORT_ROLE_SINK)
+            {
+                ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                status = INVALID_OPERATION;
+                break;
+            }
+
+            ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+            status = BAD_VALUE;
+            break;
+
+        }
+        else if (config->type == AUDIO_PORT_TYPE_DEVICE)
+        {
+            if (mUseAudioPatchForFm == false)
+            {
+                ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                status = INVALID_OPERATION;
+                break;
+            }
+
+            if (config->role == AUDIO_PORT_ROLE_SINK || config->role == AUDIO_PORT_ROLE_SOURCE)
+            {
+                //Support specific device eg. headphone/speaker
+                size_t indexOfPatch;
+                size_t indexOfSink;
+                audio_port_config *pstCurConfig = NULL;
+                bool bhit = false;
+                for (indexOfPatch = 0; indexOfPatch < mAudioHalPatchVector.size() && !bhit; indexOfPatch++)
+                {
+                    for (indexOfSink = 0; indexOfSink < mAudioHalPatchVector[indexOfPatch]->num_sinks; indexOfSink++)
+                    {
+                        if ((config->ext.device.type == mAudioHalPatchVector[indexOfPatch]->sinks[indexOfSink].ext.device.type)
+                            && (mAudioHalPatchVector[indexOfPatch]->sources[indexOfSink].ext.device.type == AUDIO_DEVICE_IN_FM_TUNER)
+                            && (mAudioHalPatchVector[indexOfPatch]->sinks[indexOfSink].ext.device.type & FM_DEVICE_TO_DEVICE_SUPPORT_OUTPUT_DEVICES))
+                        {
+                            bhit = true;
+                            pstCurConfig = &(mAudioHalPatchVector[indexOfPatch]->sinks[indexOfSink]);
+                            break;
+                        }
+                    }
+                }
+
+                if (!bhit || pstCurConfig == NULL)
+                {
+                    ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                    status = INVALID_OPERATION;
+                    break;
+                }
+
+                if (!config->gain.mode)
+                {
+                    ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                    status = INVALID_OPERATION;
+                    break;
+                }
+
+                int dGainDB = 0;
+                unsigned int ramp_duration_ms = 0;
+                float fFMVolume;
+                if (config->gain.mode & AUDIO_GAIN_MODE_JOINT | AUDIO_GAIN_MODE_CHANNELS) //Hw support joint only
+                {
+                    fFMVolume = MappingFMVolofOutputDev(config->gain.values[0],pstCurConfig->ext.device.type);
+                }
+                else
+                {
+#ifndef MTK_AUDIO_GAIN_TABLE
+                    fFMVolume = AudioMTKVolumeController::linearToLog(dGainDB);
+#else
+                    fFMVolume = AudioMTKGainController::linearToLog(dGainDB);
+#endif
+                }
+
+                if (config->gain.mode & AUDIO_GAIN_MODE_RAMP)
+                {
+                    ramp_duration_ms = config->gain.ramp_duration_ms;
+                }
+
+                ALOGD("fFMVolume %f",fFMVolume);
+                if (fFMVolume >=0 && fFMVolume <=1.0)
+                {
+                    AudioFMController::GetInstance()->SetFmVolume(fFMVolume);
+                }
+                else
+                {
+                    ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                    status = BAD_VALUE;
+                    break;
+                }
+
+            }
+#if 0
+            else if (config->role == AUDIO_PORT_ROLE_SOURCE)
+            {
+                ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                status = INVALID_OPERATION;
+                break;
+
+            }
+#endif
+            else
+            {
+                ALOGW("[%s] [%d]", __FUNCTION__, __LINE__);
+                status = BAD_VALUE;
+                break;
+            }
+        }
+
+
+    }
+    while (0);
+
+    //TODO
+    return status;
+}
+
+
+float AudioMTKHardware::MappingFMVolofOutputDev(int Gain, audio_devices_t eOutput)
+{
+    float fFMVolume;
+    if ((eOutput & FM_DEVICE_TO_DEVICE_SUPPORT_OUTPUT_DEVICES) == 0)
+    {
+        ALOGE("Error FM createAudioPatch direct mode fail device [0x%x]",eOutput);
+        return 1.0;
+    }
+
+    if (mUseTuningVolume == false)
+    {
+        int dGainDB = 0;
+        dGainDB = Gain / 100;
+        if (dGainDB >= 0)//Support degrade only
+            dGainDB = 0;
+        else
+            dGainDB = (-1)*dGainDB;
+        dGainDB = dGainDB<<2;
+        if (dGainDB > 256)
+            dGainDB = 256;
+        dGainDB = 256- dGainDB;
+
+#ifndef MTK_AUDIO_GAIN_TABLE
+        fFMVolume = AudioMTKVolumeController::linearToLog(dGainDB);
+#else
+        fFMVolume = AudioMTKGainController::linearToLog(dGainDB);
+#endif
+
+        ALOGD("default f fFMVolume %f",fFMVolume);
+        if (fFMVolume < 0)
+                fFMVolume = 0;
+        else if (fFMVolume > 1.0)
+                fFMVolume = 1.0;
+    }
+    else
+    {
+        const float fCUSTOM_VOLUME_MAPPING_STEP = 256.0f;
+        unsigned char* array;
+
+        if (eOutput & AUDIO_DEVICE_OUT_SPEAKER)
+            array = VolCache.audiovolume_steamtype[CUSTOM_VOL_TYPE_MUSIC][CUSTOM_VOLUME_SPEAKER_MODE];
+        else
+            array = VolCache.audiovolume_steamtype[CUSTOM_VOL_TYPE_MUSIC][CUSTOM_VOLUME_HEADSET_MODE];
+
+        int dIndex = 15- (((-1)*Gain)/300);
+        int dMaxIndex = VolCache.audiovolume_level[CUSTOM_VOL_TYPE_MUSIC];
+        ALOGD("FM index %d",dIndex);
+        if (dIndex > 15)
+            dIndex = 15;
+        else if (dIndex < 0)
+            dIndex = 0;
+        float vol = (fCUSTOM_VOLUME_MAPPING_STEP * dIndex) / dMaxIndex;
+        float volume =0.0;
+        if (vol == 0) {
+            volume = vol;
+        } else {    // map volume value to custom volume
+            float unitstep = fCUSTOM_VOLUME_MAPPING_STEP/dMaxIndex;
+            if (vol < fCUSTOM_VOLUME_MAPPING_STEP/dMaxIndex) {
+                volume = array[0];
+            } else {
+                int Index = (vol+0.5)/unitstep;
+                vol -= (Index*unitstep);
+                float Remind = (1.0 - (float)vol/unitstep);
+                if (Index != 0) {
+                    volume = ((array[Index]  - (array[Index] - array[Index-1]) * Remind)+0.5);
+                } else {
+                    volume = 0;
+                }
+            }
+            // -----clamp for volume
+            if ( volume > 253.0) {
+                volume = fCUSTOM_VOLUME_MAPPING_STEP;
+            } else if ( volume <= array[0]) {
+                volume = array[0];
+            }
+        }
+
+#ifndef MTK_AUDIO_GAIN_TABLE
+        fFMVolume = AudioMTKVolumeController::linearToLog(volume);
+#else
+        fFMVolume = AudioMTKGainController::linearToLog(volume);
+#endif
+
+    }
+    ALOGD("Final fFMVolume %f",fFMVolume);
+    return fFMVolume;
+}
 
 #endif
 

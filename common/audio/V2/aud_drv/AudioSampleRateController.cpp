@@ -146,12 +146,16 @@ uint32_t AudioSampleRateController::ApplySampleRate(SampleRateScenario_T scenari
 
 bool AudioSampleRateController::Lock(void)
 {
+    if (mStreamOut==NULL)
+        return false;
     ALOGD("%s()", __FUNCTION__);
     return mStreamOut->StreamOutLock();
 }
 
 bool AudioSampleRateController::Unlock(void)
 {
+    if (mStreamOut==NULL)
+        return false;
     ALOGD("%s()", __FUNCTION__);
     return mStreamOut->StreamOutUnlock();
 }

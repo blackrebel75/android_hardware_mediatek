@@ -238,7 +238,27 @@ AudioMTKStreamOut::AudioMTKStreamOut(uint32_t devices, int *format, uint32_t *ch
 
     ALOGD("-AudioMTKStreamOut constructor \n");
 }
+/*
+status_t AudioMTKStreamOut::pause()
+{
+    return INVALID_OPERATION;
+}
 
+status_t AudioMTKStreamOut::resume()
+{
+    return INVALID_OPERATION;	
+}
+
+status_t AudioMTKStreamOut::flush()
+{
+    return INVALID_OPERATION;	
+}
+
+int AudioMTKStreamOut::drain(audio_drain_type_t type)
+{
+    return 0;
+}
+*/
 AudioMTKStreamOut::~AudioMTKStreamOut()
 {
     ALOGD("AudioMTKStreamOut desstructor \n");

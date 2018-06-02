@@ -2292,4 +2292,63 @@ void AudioMTKHardware::closeInputStream(android_audio_legacy::AudioStreamIn *in)
 }
 
 
+status_t AudioMTKHardware::setMasterMute(bool muted)
+{
+    return INVALID_OPERATION;
 }
+
+int AudioMTKHardware::getAudioPort(struct audio_port *port)
+{
+    //TODO , I think the implementation is designed in aps.
+    ALOGW("-%s Unsupport", __FUNCTION__);
+    return INVALID_OPERATION;
+}
+
+int AudioMTKHardware::setAudioPortConfig(const struct audio_port_config *config)
+{
+    return INVALID_OPERATION;
+}
+
+int AudioMTKHardware::createAudioPatch(unsigned int num_sources,
+                                        const struct audio_port_config *sources,
+                                        unsigned int num_sinks,
+                                        const struct audio_port_config *sinks,
+                                        audio_patch_handle_t *handle)
+{
+    return INVALID_OPERATION;
+}
+
+int AudioMTKHardware::releaseAudioPatch(audio_patch_handle_t handle)
+{
+    return INVALID_OPERATION;
+}
+
+status_t AudioMTKHardware::getMasterVolume(float *volume)
+{
+    return INVALID_OPERATION;
+}
+
+android_audio_legacy::AudioStreamOut *AudioMTKHardware::openOutputStreamWithFlags(uint32_t devices,
+                                          audio_output_flags_t flags,
+                                          int *format,
+                                          uint32_t *channels,
+                                          uint32_t *sampleRate,
+                                          status_t *status)
+{
+    return openOutputStream(devices, format, channels, sampleRate, status);
+}
+
+};
+
+
+namespace android_audio_legacy
+{
+
+status_t AudioStreamOut::getPresentationPosition(uint64_t *frames, struct timespec *timestamp)
+{
+    return INVALID_OPERATION;
+}
+
+
+};
+

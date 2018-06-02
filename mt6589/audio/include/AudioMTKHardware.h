@@ -142,7 +142,7 @@ class AudioMTKHardware : public android_audio_legacy::AudioHardwareBase
         // Returns audio input buffer size according to parameters passed or 0 if one of the
         // parameters is not supported
         virtual size_t    getInputBufferSize(uint32_t sampleRate, int format, int channelCount);
-
+        virtual status_t    getMasterVolume(float *volume);
         /** This method creates and opens the audio hardware output stream */
         virtual android_audio_legacy::AudioStreamOut *openOutputStream(
             uint32_t devices,
@@ -150,6 +150,14 @@ class AudioMTKHardware : public android_audio_legacy::AudioHardwareBase
             uint32_t *channels = 0,
             uint32_t *sampleRate = 0,
             status_t *status = 0);
+
+        virtual android_audio_legacy::AudioStreamOut *openOutputStreamWithFlags(uint32_t devices,
+                                                  audio_output_flags_t flags=(audio_output_flags_t)0,
+                                                  int *format=0,
+                                                  uint32_t *channels=0,
+                                                  uint32_t *sampleRate=0,
+                                                  status_t *status=0);
+
         virtual    void        closeOutputStream(android_audio_legacy::AudioStreamOut *out);
         /** This method creates and opens the audio hardware input stream */
         virtual android_audio_legacy::AudioStreamIn *openInputStream(
@@ -186,15 +194,51 @@ class AudioMTKHardware : public android_audio_legacy::AudioHardwareBase
         virtual int xWayRec_Stop(void);
         virtual int xWayRec_Read(void *buffer, int size_bytes);
         //added by wendy
-        int ReadRefFromRing(void *buf, uint32_t datasz, void *DLtime);
-        int GetVoiceUnlockULTime(void *DLtime);
-        int SetVoiceUnlockSRC(uint outSR, uint outChannel);
-        bool startVoiceUnlockDL();
-        bool stopVoiceUnlockDL();
-        void freeVoiceUnlockDLInstance();
-        int GetVoiceUnlockDLLatency();
-        bool getVoiceUnlockDLInstance();
+        virtual int ReadRefFromRing(void *buf, uint32_t datasz, void *DLtime);
+        virtual int GetVoiceUnlockULTime(void *DLtime);
+        virtual int SetVoiceUnlockSRC(uint outSR, uint outChannel);
+        virtual bool startVoiceUnlockDL();
+        virtual bool stopVoiceUnlockDL();
+        virtual void freeVoiceUnlockDLInstance();
+        virtual int GetVoiceUnlockDLLatency();
+        virtual bool getVoiceUnlockDLInstance();
 
+        virtual status_t setMasterMute(bool muted);
+        virtual int createAudioPatch(unsigned int num_sources,
+                       const struct audio_port_config *sources,
+                       unsigned int num_sinks,
+                       const struct audio_port_config *sinks,
+                       audio_patch_handle_t *handle);
+
+        virtual int releaseAudioPatch(audio_patch_handle_t handle);
+
+        virtual int getAudioPort(struct audio_port *port);
+
+        virtual int setAudioPortConfig(const struct audio_port_config *config);
+        class AudioHalPatch {
+        public:
+            AudioHalPatch(audio_patch_handle_t newHalHandle) :
+                mHalHandle(newHalHandle), num_sources(0), num_sinks(0) {memset((void*)sources,0x00,sizeof(struct audio_port_config)*AUDIO_PATCH_PORTS_MAX);memset((void*)sinks,0x00,sizeof(struct audio_port_config)*AUDIO_PATCH_PORTS_MAX);}
+
+            unsigned int      num_sources;      /* number of sources in following array */
+            struct audio_port_config sources[AUDIO_PATCH_PORTS_MAX];
+            unsigned int      num_sinks;        /* number of sinks in following array */
+            struct audio_port_config sinks[AUDIO_PATCH_PORTS_MAX];
+            audio_patch_handle_t mHalHandle;
+        };
+    protected:
+        /** returns true if the given mode maps to a telephony or VoIP call is in progress */
+        virtual bool     isModeInCall(int mode)
+        {
+            return ((mode == AUDIO_MODE_IN_CALL)
+//                    || (mode == AUDIO_MODE_IN_CALL_2)
+                    || (mode == AUDIO_MODE_IN_COMMUNICATION));
+        }
+        /** returns true if a telephony or VoIP call is in progress */
+        virtual bool     isInCall() { return isModeInCall(mMode); }
+
+	    float MappingFMVolofOutputDev(int Gain, audio_devices_t eOutput);
+	private:
         status_t ForceAllStandby(void);
         status_t SetOutputSuspend(bool bEnable);
         status_t SetInputSuspend(bool bEnable);
@@ -218,22 +262,8 @@ class AudioMTKHardware : public android_audio_legacy::AudioHardwareBase
 
         bool UpdateOutputFIR(int mode , int index);
 
-        //        virtual status_t SetVibSpkCalibrationParam(AUDIO_ACF_CUSTOM_PARAM_STRUCT *cali_param);
-        //        virtual uint32_t GetVibSpkCalibrationStatus();
-        //        virtual void     SetVibSpkEnable(bool enable, uint32_t freq);
-        //        virtual void     SetVibSpkRampControl(uint8_t rampcontrol);
-        //#endif
         bool ReadAuxadcData(int channel, int *value);
-    protected:
-        /** returns true if the given mode maps to a telephony or VoIP call is in progress */
-        virtual bool     isModeInCall(int mode)
-        {
-            return ((mode == AUDIO_MODE_IN_CALL)
-                    || (mode == AUDIO_MODE_IN_CALL_2)
-                    || (mode == AUDIO_MODE_IN_COMMUNICATION));
-        }
-        /** returns true if a telephony or VoIP call is in progress */
-        virtual bool     isInCall() { return isModeInCall(mMode); }
+ 
 
         virtual status_t dump(int fd, const Vector<String16> &args);
 
@@ -264,6 +294,11 @@ class AudioMTKHardware : public android_audio_legacy::AudioHardwareBase
         AudioParamTuning *mAudioTuningInstance;
 
         pthread_mutex_t setParametersMutex;  // use for setParameters
+
+        status_t SetAudioCommonCommand(int par1, int par2);
+        status_t GetAudioCommonCommand(int parameters1);
+        status_t SetAudioCommonData(int par1, size_t len, void *ptr);
+        status_t GetAudioCommonData(int par1, size_t len, void *ptr);
 };
 
 }

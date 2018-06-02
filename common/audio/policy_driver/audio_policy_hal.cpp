@@ -143,7 +143,7 @@ extern "C" {
 
         ALOGV("%s: tid %d", __func__, gettid());
         return lap->apm->getOutput((AudioSystem::stream_type)stream,
-                                   sampling_rate, (int) format, channelMask,
+								   sampling_rate, format, channelMask,
                                (AudioSystem::output_flags)flags,
                                offloadInfo);
     }
@@ -178,7 +178,7 @@ extern "C" {
                                           audio_in_acoustics_t acoustics)
     {
         struct legacy_audio_policy *lap = to_lap(pol);
-        return lap->apm->getInput((int) inputSource, sampling_rate, (int) format, channelMask,
+		return lap->apm->getInput((int) inputSource, sampling_rate, format, channelMask,
                                   (AudioSystem::audio_in_acoustics)acoustics);
     }
 
@@ -333,7 +333,8 @@ extern "C" {
     static bool ap_is_offload_supported(const struct audio_policy *pol,
                                    const audio_offload_info_t *info)
 {
-    return false;//TODO
+        const struct legacy_audio_policy *lap = to_clap(pol);
+        return lap->apm->isOffloadSupported(*info);
 }
 
     static int create_legacy_ap(const struct audio_policy_device *device,
@@ -461,21 +462,21 @@ err_new_compat_client:
     }
 
     static struct hw_module_methods_t legacy_ap_module_methods = {
-        open: legacy_ap_dev_open
+        .open = legacy_ap_dev_open
     };
 
     struct legacy_ap_module HAL_MODULE_INFO_SYM = {
-    module: {
-        common: {
-            tag: HARDWARE_MODULE_TAG,
-                version_major: 1,
-                version_minor: 0,
-            id: AUDIO_POLICY_HARDWARE_MODULE_ID,
-            name: "LEGACY Audio Policy HAL",
-            author: "The Android Open Source Project",
-            methods: &legacy_ap_module_methods,
-            dso : NULL,
-            reserved : {0},
+    .module = {
+        .common = {
+            .tag = HARDWARE_MODULE_TAG,
+            .version_major = 1,
+            .version_minor = 0,
+            .id = AUDIO_POLICY_HARDWARE_MODULE_ID,
+            .name = "LEGACY Audio Policy HAL",
+            .author = "The Android Open Source Project",
+            .methods = &legacy_ap_module_methods,
+            .dso = NULL,
+            .reserved = {0},
             },
         },
     };

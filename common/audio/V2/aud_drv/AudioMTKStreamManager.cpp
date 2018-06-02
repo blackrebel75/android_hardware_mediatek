@@ -72,7 +72,7 @@ AudioMTKStreamManager::AudioMTKStreamManager()
     mBesLoudnessStatus = (result ? true : false);
     ALOGD("AudioMTKStreamManager mBesLoudnessStatus [%d] (From NvRam) \n",mBesLoudnessStatus);
 #else
-    mBesLoudnessStatus = true;
+    mBesLoudnessStatus = false;
     ALOGD("AudioMTKStreamManager mBesLoudnessStatus [%d] (Always) \n",mBesLoudnessStatus);
 #endif
     mBesLoudnessControlCallback = NULL;
@@ -499,6 +499,37 @@ status_t AudioMTKStreamManager::setParametersToStreamOut(const String8 &keyValue
         }
     }
     return NO_ERROR;
+}
+
+status_t AudioMTKStreamManager::setParameters(const String8 &keyValuePairs, int IOport)
+{
+    status_t status = PERMISSION_DENIED;
+    ssize_t index = -1;
+
+    ALOGD("+%s(), IOport = %d, keyValuePairs = %s", __FUNCTION__, IOport, keyValuePairs.string());
+
+    index = mStreamOutVector.indexOfKey(IOport);
+    if (index >= 0)
+    {
+        ALOGD("Send to mStreamOutVector[%zu]", index);
+        AudioMTKStreamOut *pTempOut = (AudioMTKStreamOut *)mStreamOutVector.valueAt(index);
+        status = pTempOut->setParameters(keyValuePairs);
+        ALOGD("-%s()", __FUNCTION__);
+        return status;
+    }
+
+    index = mStreamInVector.indexOfKey(IOport);
+    if (index >= 0)
+    {
+        ALOGD("Send to mStreamInVector [%zu]", index);
+        AudioMTKStreamIn *pTempIn = (AudioMTKStreamIn *)mStreamInVector.valueAt(index);
+        status = pTempIn->setParameters(keyValuePairs);
+        ALOGD("-%s()", __FUNCTION__);
+        return status;
+    }
+
+    ALOGE("-%s(), do nothing, return", __FUNCTION__);
+    return status;
 }
 
 

@@ -258,7 +258,7 @@ AudioMTKVolumeController::AudioMTKVolumeController()
 
     mVoiceVolume = 1.0f;
     mMasterVolume = 1.0f;
-    for (size_t i = 0; i < AUDIO_STREAM_MAX; ++i)
+    for (size_t i = 0; i < AUDIO_STREAM_CNT; ++i)
     {
         mStreamVolume[i] = 1.0f;
     }

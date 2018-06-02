@@ -953,15 +953,18 @@ status_t AudioMachineDevice::AnalogOpenForAddSPK(AudioAnalogType::DEVICE_TYPE De
             mAudioAnalogReg->SetAnalogReg(0x0702, 0x0007, 0xffff); // HP power on
             mAudioAnalogReg->SetAnalogReg(0x0704, 0x0000, 0xffff); // HP enhance
             mAudioAnalogReg->SetAnalogReg(0x0706, 0x0022, 0xffff); // HS enahnce
-            mAudioAnalogReg->SetAnalogReg(0x073C, 0x0505, 0xffff); // HP PA gain
+//            mAudioAnalogReg->SetAnalogReg(0x073C, 0x0505, 0xffff); // HP PA gain
+            mAudioAnalogReg->SetAnalogReg(0x073C, 0x0808, 0xffff) ; // HP PGA gain
             mAudioAnalogReg->SetAnalogReg(0x0740, 0x0505, 0xffff); // set DUDIV gain ,iv buffer gain
             mAudioAnalogReg->SetAnalogReg(0x0710, 0x0011, 0xffff); // set IV buffer on
             mAudioAnalogReg->SetAnalogReg(0x0712, 0x0001, 0x0001); // reset docoder
-            mAudioAnalogReg->SetAnalogReg(0x0700, 0x0009, 0xffff); // power on DAC
+//            mAudioAnalogReg->SetAnalogReg(0x0700, 0x0009, 0xffff); // power on DAC
+            mAudioAnalogReg->SetAnalogReg(0x0700, 0x000F, 0xffff); // power on DAC
             usleep(1000);
             AnalogSetMux(AudioAnalogType::DEVICE_OUT_SPEAKERR, (AudioAnalogType::MUX_TYPE)mBlockAttribute[DeviceType].mMuxSelect);
             AnalogSetMux(AudioAnalogType::DEVICE_OUT_SPEAKERL, (AudioAnalogType::MUX_TYPE)mBlockAttribute[DeviceType].mMuxSelect);
-            mAudioAnalogReg->SetAnalogReg(0x0702, 0x0000, 0x0007); // set Mux
+//            mAudioAnalogReg->SetAnalogReg(0x0702, 0x0000, 0x0007); // set Mux
+            mAudioAnalogReg->SetAnalogReg(0x0702, 0x0906, 0x0906); // set headhpone mux            
             usleep(1000);
             mAudioAnalogReg->SetAnalogReg(AFUNC_AUD_CON2, 0x0000, 0x0080);
 
@@ -999,31 +1002,27 @@ status_t AudioMachineDevice::AnalogCloseForSubSPK(AudioAnalogType::DEVICE_TYPE D
         case AudioAnalogType::DEVICE_OUT_SPEAKERL:
             // tell kernel to open device
             ioctl(mFd, SET_SPEAKER_OFF, NULL);
-#if 1
 #ifdef USING_EXTAMP_HP
 
 #else
-            mAudioAnalogReg->SetAnalogReg(AFUNC_AUD_CON2, 0x0080, 0x0080);
             mAudioAnalogReg->SetAnalogReg(0x0600, 0x0000, 0xffff);
             mAudioAnalogReg->SetAnalogReg(0x0616, 0x0000, 0xffff);
 
-            mAudioAnalogReg->SetAnalogReg(0x0712, 0x0000, 0x0001); // enable LDO ; fix me , seperate for UL  DL LDO
-            mAudioAnalogReg->SetAnalogReg(0x0700, 0x0000, 0xffff); //RG DEV ck on
-            mAudioAnalogReg->SetAnalogReg(0x0710, 0x0000, 0xffff); // NCP on
-            mAudioAnalogReg->SetAnalogReg(0x070c, 0x1552, 0xffff); // Audio headset power on
-            mAudioAnalogReg->SetAnalogReg(0x0704, 0x0000, 0x0100);
+            mAudioAnalogReg->SetAnalogReg(0x070c, 0x552, 0xffff); // Audio headset power on
+            mAudioAnalogReg->SetAnalogReg(0x0704, 0x0100, 0x0100);
 
             if (GetULinkStatus() == false)
             {
                 if (GetChipVersion() == CHIP_VERSION_E1)
                 {
-                    mAudioAnalogReg->SetAnalogReg(0x0718, 0x0004, 0xffff);
+                    mAudioAnalogReg->SetAnalogReg(0x0714, 0x0992, 0xffff);
                 }
                 else
                 {
-                    mAudioAnalogReg->SetAnalogReg(0x0718, 0x0006, 0xffff);
+                    mAudioAnalogReg->SetAnalogReg(0x0714, 0x0192, 0xffff);
                 }
             }
+#if 0
             mAudioAnalogReg->SetAnalogReg(0x0746, 0x0001, 0xffff); // fix me
             mAudioAnalogReg->SetAnalogReg(0x071A, 0x0000, 0x6000);
             if (GetULinkStatus() == false)
@@ -1038,7 +1037,6 @@ status_t AudioMachineDevice::AnalogCloseForSubSPK(AudioAnalogType::DEVICE_TYPE D
                 }
             }
             mAudioAnalogReg->SetAnalogReg(AFUNC_AUD_CON2, 0x0000, 0x0080);
-
 #endif
 #endif
             break;

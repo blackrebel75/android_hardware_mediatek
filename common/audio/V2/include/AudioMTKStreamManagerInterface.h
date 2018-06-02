@@ -8,6 +8,14 @@
 namespace android
 {
 
+//!  BESLOUDNESS_CONTROL_CALLBACK_STRUCT interface
+/*!
+this structure is hold for flinger callback funtion
+*/
+typedef struct _BESLOUDNESS_CONTROL_CALLBACK_STRUCT
+{
+    void (*callback)(void *data);
+} BESLOUDNESS_CONTROL_CALLBACK_STRUCT;
 
 
 //!  AudioMTKStreamMAnagerInterface interface

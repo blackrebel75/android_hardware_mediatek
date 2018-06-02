@@ -135,6 +135,7 @@ class AudioMTKStreamManager : public AudioMTKStreamManagerBase
 #endif
 
         virtual void SetBesLoudnessControlCallback(const BESLOUDNESS_CONTROL_CALLBACK_STRUCT *callback_data);
+        virtual status_t setParameters(const String8 &keyValuePairs, int IOport);
     protected:
         /**
         *  protected constructor of AudioMTKStreamManager

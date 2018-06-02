@@ -132,13 +132,12 @@ public:
         virtual AudioSystem::forced_config getForceUse(AudioSystem::force_use usage);
         virtual void setSystemProperty(const char* property, const char* value);
         virtual status_t initCheck();
-        virtual audio_io_handle_t getOutput(AudioSystem::stream_type stream,
-                                            uint32_t samplingRate = 0,
-                                            uint32_t format = AudioSystem::FORMAT_DEFAULT,
-                                            uint32_t channels = 0,
-                                            AudioSystem::output_flags flags =
-                                                    AudioSystem::OUTPUT_FLAG_INDIRECT,
-                                            const audio_offload_info_t *offloadInfo = NULL);
+    virtual audio_io_handle_t getOutput(AudioSystem::stream_type stream,
+                                        uint32_t samplingRate,
+                                        audio_format_t format,
+                                        audio_channel_mask_t channelMask,
+                                        AudioSystem::output_flags flags,
+                                            const audio_offload_info_t *offloadInfo);
         virtual status_t startOutput(audio_io_handle_t output,
                                      AudioSystem::stream_type stream,
                                      int session = 0);
@@ -146,10 +145,10 @@ public:
                                     AudioSystem::stream_type stream,
                                     int session = 0);
         virtual void releaseOutput(audio_io_handle_t output);
-        virtual audio_io_handle_t getInput(int inputSource,
-                                            uint32_t samplingRate,
-                                            uint32_t format,
-                                            uint32_t channels,
+    virtual audio_io_handle_t getInput(int inputSource,
+                                    uint32_t samplingRate,
+                                    audio_format_t format,
+                                    audio_channel_mask_t channelMask,
                                             AudioSystem::audio_in_acoustics acoustics);
 
         // indicates to the audio policy manager that the input starts being used.
@@ -158,6 +157,7 @@ public:
         // indicates to the audio policy manager that the input stops being used.
         virtual status_t stopInput(audio_io_handle_t input);
         virtual void releaseInput(audio_io_handle_t input);
+        virtual void closeAllInputs();
         virtual void initStreamVolume(AudioSystem::stream_type stream,
                                                     int indexMin,
                                                     int indexMax);
@@ -272,11 +272,12 @@ protected:
 
             bool isCompatibleProfile(audio_devices_t device,
                                      uint32_t samplingRate,
-                                     uint32_t format,
-                                     uint32_t channelMask,
+                                     audio_format_t format,
+                                     audio_channel_mask_t channelMask,
                                      audio_output_flags_t flags) const;
 
             void dump(int fd);
+            void log();
 
             // by convention, "0' in the first entry in mSamplingRates, mChannelMasks or mFormats
             // indicates the supported parameters should be read from the output stream
@@ -306,7 +307,7 @@ protected:
 		static const VolumeCurvePoint sDefaultVoiceVolumeCurve[AudioMTKPolicyManager::VOLCNT];
         static const VolumeCurvePoint sSpeakerVoiceVolumeCurve[AudioMTKPolicyManager::VOLCNT];
         // default volume curves per stream and device category. See initializeVolumeCurves()
-        static const VolumeCurvePoint *sVolumeProfiles[AUDIO_STREAM_CNT][DEVICE_CATEGORY_CNT];
+        static const VolumeCurvePoint *sVolumeProfiles[AudioSystem::NUM_STREAM_TYPES][DEVICE_CATEGORY_CNT];
 
         // descriptor for audio outputs. Used to maintain current configuration of each opened audio output
         // and keep track of the usage of this output by each audio stream type.
@@ -359,6 +360,7 @@ protected:
 
             status_t    dump(int fd);
 
+            audio_io_handle_t mId;                      // input handle
             uint32_t mSamplingRate;                     //
             audio_format_t mFormat;                     // input configuration
             audio_channel_mask_t mChannelMask;             //
@@ -403,6 +405,7 @@ protected:
         };
 
         void addOutput(audio_io_handle_t id, AudioOutputDescriptor *outputDesc);
+        void addInput(audio_io_handle_t id, AudioInputDescriptor *inputDesc);
 
         // return the strategy corresponding to a given stream type
         static routing_strategy getStrategy(AudioSystem::stream_type stream);
@@ -481,7 +484,13 @@ protected:
         // transfers the audio tracks and effects from one output thread to another accordingly.
         status_t checkOutputsForDevice(audio_devices_t device,
                                        AudioSystem::device_connection_state state,
-                                       SortedVector<audio_io_handle_t>& outputs);
+                                       SortedVector<audio_io_handle_t>& outputs,
+                                       const String8 paramStr);
+
+        status_t checkInputsForDevice(audio_devices_t device,
+                                      AudioSystem::device_connection_state state,
+                                      SortedVector<audio_io_handle_t>& inputs,
+                                      const String8 paramStr);
 
         // close an output and its companion duplicating output.
         void closeOutput(audio_io_handle_t output);
@@ -548,12 +557,12 @@ protected:
                                        AudioSystem::output_flags flags);
         IOProfile *getInputProfile(audio_devices_t device,
                                    uint32_t samplingRate,
-                                   uint32_t format,
-                                   uint32_t channelMask);
+                                   audio_format_t format,
+                                   audio_channel_mask_t channelMask);
         IOProfile *getProfileForDirectOutput(audio_devices_t device,
                                                        uint32_t samplingRate,
-                                                       uint32_t format,
-                                                       uint32_t channelMask,
+                                                       audio_format_t format,
+                                                       audio_channel_mask_t channelMask,
                                                        audio_output_flags_t flags);
 
         audio_io_handle_t selectOutputForEffects(const SortedVector<audio_io_handle_t>& outputs);
@@ -603,7 +612,7 @@ protected:
         StreamDescriptor mStreams[AudioSystem::NUM_STREAM_TYPES];           // stream descriptors for volume control
         String8 mA2dpDeviceAddress;                                         // A2DP device MAC address
         String8 mScoDeviceAddress;                                          // SCO device MAC address
-        String8 mUsbCardAndDevice; // USB audio ALSA card and device numbers:
+        String8 mUsbOutCardAndDevice;                                       // USB audio ALSA card and device numbers:
                                    // card=<card_number>;device=<><device_number>
         bool    mLimitRingtoneVolume;                                       // limit ringtone volume to music volume if headset connected
         audio_devices_t mDeviceForStrategy[NUM_STRATEGIES];
