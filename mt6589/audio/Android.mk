@@ -43,24 +43,17 @@ include $(LOCAL_PATH)/ProjectConfig.mk
 LOCAL_CFLAGS += -DMT6589
 LOCAL_CFLAGS += -DMTK_AUDIO
 
-ifeq ($(strip $(MTK_HIGH_RESOLUTION_AUDIO_SUPPORT)),yes)
+#ifeq ($(strip $(MTK_HIGH_RESOLUTION_AUDIO_SUPPORT)),yes)
     LOCAL_CFLAGS += -DMTK_HD_AUDIO_ARCHITECTURE
-endif
+#endif
 
-ifeq ($(AUDIO_POLICY_TEST),true)
-  ENABLE_AUDIO_DUMP := true
-endif
-
-ifeq ($(strip $(TARGET_BUILD_VARIANT)),eng)
-  LOCAL_CFLAGS += -DDEBUG_AUDIO_PCM
-endif
 
 ifeq ($(MTK_DIGITAL_MIC_SUPPORT),yes)
   LOCAL_CFLAGS += -DMTK_DIGITAL_MIC_SUPPORT
 endif
 
 ifeq ($(strip $(MTK_AUDENH_SUPPORT)),yes)
-  LOCAL_CFLAGS += -DMTK_AUDENH_SUPPORT
+#  LOCAL_CFLAGS += -DMTK_AUDENH_SUPPORT
 endif
 
 ifeq ($(strip $(MTK_2IN1_SPK_SUPPORT)),yes)
@@ -75,9 +68,9 @@ ifeq ($(strip $(DMNR_TUNNING_AT_MODEMSIDE)),yes)
 LOCAL_CFLAGS += -DDMNR_TUNNING_AT_MODEMSIDE
 endif
 
-  ifeq ($(strip $(MTK_AUDIO_BLOUD_CUSTOMPARAMETER_REV)),MTK_AUDIO_BLOUD_CUSTOMPARAMETER_V4)
+#  ifeq ($(strip $(MTK_AUDIO_BLOUD_CUSTOMPARAMETER_REV)),MTK_AUDIO_BLOUD_CUSTOMPARAMETER_V4)
     LOCAL_CFLAGS += -DMTK_AUDIO_BLOUD_CUSTOMPARAMETER_V4
-  endif
+#  endif
 
 MTK_PATH_SOURCE=mediatek
 
@@ -180,14 +173,9 @@ LOCAL_SRC_FILES+= \
   LOCAL_SRC_FILES += $(LOCAL_COMMON_PATH)/audio/aud_drv/AudioVIBSPKControl.cpp
 #endif
 
-ifeq ($(ENABLE_AUDIO_DUMP),true)
-  LOCAL_SRC_FILES += AudioDumpInterface.cpp
-  LOCAL_CFLAGS += -DENABLE_AUDIO_DUMP
-endif
-
-ifeq ($(strip $(MTK_TTY_SUPPORT)),yes)
+#ifeq ($(strip $(MTK_TTY_SUPPORT)),yes)
   LOCAL_CFLAGS += -DMTK_TTY_SUPPORT
-endif
+#endif
 
 LOCAL_STATIC_LIBRARIES := \
     libmedia_helper 
@@ -228,13 +216,13 @@ ifeq ($(TELEPHONY_DFOSET),yes)
 endif   
 
 	
-ifeq ($(MTK_DUAL_MIC_SUPPORT),yes)
+#ifeq ($(MTK_DUAL_MIC_SUPPORT),yes)
   LOCAL_CFLAGS += -DMTK_DUAL_MIC_SUPPORT
-endif
+#endif
 
-ifeq ($(MTK_WB_SPEECH_SUPPORT),yes)
+#ifeq ($(MTK_WB_SPEECH_SUPPORT),yes)
   LOCAL_CFLAGS += -DMTK_WB_SPEECH_SUPPORT
-endif
+#endif
 
 ifeq ($(strip $(MTK_FM_SUPPORT)),yes)
     ifeq ($(strip $(MTK_FM_TX_SUPPORT)),yes)
@@ -267,13 +255,13 @@ ifeq ($(MTK_ENABLE_MD2),yes)
   LOCAL_CFLAGS += -DMTK_ENABLE_MD2
 endif
 
-ifeq ($(MTK_DUAL_MIC_SUPPORT),yes)
+#ifeq ($(MTK_DUAL_MIC_SUPPORT),yes)
   LOCAL_CFLAGS += -DMTK_DUAL_MIC_SUPPORT
-endif
+#endif
 
-ifeq ($(MTK_WB_SPEECH_SUPPORT),yes)
+#ifeq ($(MTK_WB_SPEECH_SUPPORT),yes)
   LOCAL_CFLAGS += -DMTK_WB_SPEECH_SUPPORT
-endif
+#endif
 
 ifeq ($(MTK_BT_SUPPORT),yes)
   ifeq ($(MTK_BT_PROFILE_A2DP),yes)
@@ -292,15 +280,15 @@ endif
 # SRS Processing
 
 # Audio HD Record
-ifeq ($(MTK_AUDIO_HD_REC_SUPPORT),yes)
+#ifeq ($(MTK_AUDIO_HD_REC_SUPPORT),yes)
     LOCAL_CFLAGS += -DMTK_AUDIO_HD_REC_SUPPORT
-endif
+#endif
 # Audio HD Record
 
 # MTK VoIP
-ifeq ($(MTK_VOIP_ENHANCEMENT_SUPPORT),yes)
-    LOCAL_CFLAGS += -DMTK_VOIP_ENHANCEMENT_SUPPORT
-endif
+#ifeq ($(MTK_VOIP_ENHANCEMENT_SUPPORT),yes)
+#    LOCAL_CFLAGS += -DMTK_VOIP_ENHANCEMENT_SUPPORT
+#endif
 # MTK VoIP
 
 # DMNR 3.0
@@ -323,8 +311,7 @@ endif
 
 LOCAL_ARM_MODE := arm
 LOCAL_MODULE := libaudio.primary.default
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
-LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
 
 include $(BUILD_SHARED_LIBRARY)
 
