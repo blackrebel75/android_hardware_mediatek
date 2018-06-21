@@ -157,6 +157,7 @@ static String8 keySET_MAGIC_CON_CALL_ENABLE = String8("SET_MAGIC_CON_CALL_ENABLE
 static String8 keyGET_MAGIC_CON_CALL_ENABLE = String8("GET_MAGIC_CON_CALL_ENABLE");
 
 
+static String8 keyGET_AUDIO_VOLUME_VER = String8("GET_AUDIO_VOLUME_VERSION");
 
 // Loopbacks
 static String8 keySET_LOOPBACK_USE_LOUD_SPEAKER = String8("SET_LOOPBACK_USE_LOUD_SPEAKER");
@@ -1051,6 +1052,15 @@ String8 AudioMTKHardware::getParameters(const String8 &keys)
         param.remove(keyGET_MAGIC_CON_CALL_ENABLE);
         value = (SpeechEnhancementController::GetInstance()->GetMagicConferenceCallOn() == true) ? "1" : "0";
         returnParam.add(keyGET_MAGIC_CON_CALL_ENABLE, value);
+        goto EXIT_GETPARAMETERS;
+    }
+
+    // Audio Volume version
+        if (param.get(keyGET_AUDIO_VOLUME_VER, value) == NO_ERROR)
+        {
+            param.remove(keyGET_AUDIO_VOLUME_VER);
+            value = "1";
+            returnParam.add(keyGET_AUDIO_VOLUME_VER, value);
         goto EXIT_GETPARAMETERS;
     }
 

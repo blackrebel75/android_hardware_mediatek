@@ -733,10 +733,15 @@ status_t AudioMTKVolumeController::setMasterVolume(float v, audio_mode_t mode, u
                     }
                     case (AUDIO_DEVICE_OUT_SPEAKER) :
                     {
+#ifdef USING_DUAL_SPK
+                        ApplyExtAmpHeadPhoneGain(MapVolume,  mode, Audio_Speaker);
+                        ApplyAmpGain(MapVolume,  mode, Audio_Speaker);
+#else
 #ifdef USING_EXTAMP_HP
                         ApplyExtAmpHeadPhoneGain(MapVolume,  mode, Audio_Speaker);
 #else
                         ApplyAmpGain(MapVolume,  mode, Audio_Speaker);
+#endif
 #endif
                         break;
                     }
@@ -778,10 +783,15 @@ status_t AudioMTKVolumeController::setMasterVolume(float v, audio_mode_t mode, u
                     }
                     case (AUDIO_DEVICE_OUT_SPEAKER) :
                     {
+#ifdef USING_DUAL_SPK
+                        ApplyExtAmpHeadPhoneGain(MapVolume,  mode, Audio_Speaker);
+                        ApplyAmpGain(MapVolume,  mode, Audio_Speaker);
+#else
 #ifdef USING_EXTAMP_HP
                         ApplyExtAmpHeadPhoneGain(MapVolume,  mode, Audio_Speaker);
 #else
                         ApplyAmpGain(MapVolume,  mode, Audio_Speaker);
+#endif
 #endif
                         break;
                     }
@@ -831,10 +841,15 @@ status_t AudioMTKVolumeController::setMasterVolume(float v, audio_mode_t mode, u
                     }
                     case (AUDIO_DEVICE_OUT_SPEAKER) :
                     {
+#ifdef USING_DUAL_SPK
+                        ApplyExtAmpHeadPhoneGain(MapVolume,  mode, Sipcall_Speaker);
+                        ApplyAmpGain(MapVolume,  mode, Sipcall_Speaker);
+#else
 #ifdef USING_EXTAMP_HP
                         ApplyExtAmpHeadPhoneGain(MapVolume,  mode, Sipcall_Speaker);
 #else
                         ApplyAmpGain(MapVolume,  mode, Sipcall_Speaker);
+#endif
 #endif
                         break;
                     }
@@ -984,6 +999,23 @@ status_t AudioMTKVolumeController::setVoiceVolume(float v, audio_mode_t mode, ui
     }
     if (device & AUDIO_DEVICE_OUT_SPEAKER)
     {
+#ifdef USING_DUAL_SPK
+        mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_IV_BUFFER, VoiceAnalogRange);
+        mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_IV_BUFFER, VoiceAnalogRange);
+        ApplyMdDlGain(DigitalgradeDb);
+        ApplyMdDlEhn1Gain(Enh1degradeDb);
+
+        VoiceAnalogRange = DLPGA_SPKGain_Map_Ver1[degradeDb];
+        DigitalgradeDb = DlDigital_SPKGain_Map_Ver1[degradeDb];
+        Enh1degradeDb = DlEnh1_Gain_Map_Ver1[degradeDb];
+        mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_SPKL, 3);  // 12dB for SPK
+        mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_SPKR, 3);
+        mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_IV_BUFFER, VoiceAnalogRange);
+        mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_IV_BUFFER, VoiceAnalogRange);
+        degradeDb -= VoiceAnalogRange;
+        ApplyMdDlGain(DigitalgradeDb);
+        ApplyMdDlEhn1Gain(Enh1degradeDb);
+#else
 #ifdef USING_EXTAMP_HP
         mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_IV_BUFFER, VoiceAnalogRange);
         mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_IV_BUFFER, VoiceAnalogRange);
@@ -1000,6 +1032,7 @@ status_t AudioMTKVolumeController::setVoiceVolume(float v, audio_mode_t mode, ui
         degradeDb -= VoiceAnalogRange;
         ApplyMdDlGain(DigitalgradeDb);
         ApplyMdDlEhn1Gain(Enh1degradeDb);
+#endif
 #endif
         ApplyMicGain(Handfree_Mic, mode); // set incall mic gain
     }

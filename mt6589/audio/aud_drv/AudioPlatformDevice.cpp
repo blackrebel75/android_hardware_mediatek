@@ -193,6 +193,10 @@ status_t AudioPlatformDevice::AnalogOpen(AudioAnalogType::DEVICE_TYPE DeviceType
     }
     mBlockAttribute[DeviceType].mEnable = true;
 
+ #ifdef USING_DUAL_SPK
+	if ((AudioAnalogType::DEVICE_OUT_SPEAKERR == DeviceType) || (AudioAnalogType::DEVICE_OUT_SPEAKERL == DeviceType))
+        DeviceType = AudioAnalogType::DEVICE_OUT_SPEAKER_HEADSET_R;
+ #endif
     switch (DeviceType)
     {
         case AudioAnalogType::DEVICE_OUT_EARPIECER:
@@ -382,6 +386,10 @@ status_t AudioPlatformDevice::AnalogClose(AudioAnalogType::DEVICE_TYPE DeviceTyp
     mLock.lock();
     mBlockAttribute[DeviceType].mEnable = false;
     // here to open pmic digital part
+  #ifdef USING_DUAL_SPK
+	if ((AudioAnalogType::DEVICE_OUT_SPEAKERR == DeviceType) || (AudioAnalogType::DEVICE_OUT_SPEAKERL == DeviceType))
+        DeviceType = AudioAnalogType::DEVICE_OUT_SPEAKER_HEADSET_R;
+  #endif
     switch (DeviceType)
     {
         case AudioAnalogType::DEVICE_OUT_EARPIECER:

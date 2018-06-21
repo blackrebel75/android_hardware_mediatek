@@ -4,8 +4,8 @@
 /****************************************************
 * Define Volume Range of  sound & Voice.
 *****************************************************/
-#define DEVICE_MAX_VOLUME           (12)
-#define DEVICE_VOICE_MAX_VOLUME     (12)
+#define DEVICE_MAX_VOLUME           (15)
+#define DEVICE_VOICE_MAX_VOLUME     (15)
 #define DEVICE_MIN_VOLUME           (-4)
 #define DEVICE_VOICE_MIN_VOLUME     (-4)
 #define DEVICE_VOLUME_RANGE     (64)
@@ -20,6 +20,7 @@
 *(1)->Use Ref Mic as main mic; (0)->Use original main mic.
 *****************************************************/
 #define USE_REFMIC_IN_LOUDSPK       (0)
+#if 0
 
 /****************************************************
 * Define this will enable audio compensation filter for loudspeaker
@@ -43,6 +44,7 @@
 *Please see HCF Document for detail.
 *****************************************************/
 #define ENABLE_HEADPHONE_COMPENSATION_FILTER
+#endif
 #define HEADPHONE_COMPENSATION_FLT_MODE (4)
 
 
@@ -73,7 +75,7 @@
 *keep in stereo format,because stereo output can apply
 *on more than 1 speaker.
 *****************************************************/
-//#define ENABLE_STEREO_SPEAKER
+#define ENABLE_STEREO_SPEAKER
 
 
 /****************************************************

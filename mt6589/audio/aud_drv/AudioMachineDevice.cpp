@@ -275,6 +275,28 @@ bool AudioMachineDevice::GetULinkStatus(void)
 
 status_t AudioMachineDevice::SetAmpGain(AudioAnalogType::VOLUME_TYPE volume_Type, int volume)
 {
+#if 0
+/*
+    // this will base on hw spec, use 15dB for
+    uint32 index =  13;
+
+    // condition for gainb not mute
+    if (volume > 11)
+    {
+        volume = 11;
+    }
+    //const int HWgain[] =  {-60,0,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
+    index -= volume;
+    if (index < 1)
+    {
+        index = 1; // min to 0dB
+    }
+*/
+    if (volume_Type == AudioAnalogType::VOLUME_SPKL || volume_Type == AudioAnalogType::VOLUME_SPKR)
+    {
+        mAudioAnalogReg->SetAnalogReg(SPK_CON9, 0x900, 0x00000f00);
+    }
+#endif
     // this will base on hw spec, use 15dB for
     uint32 index =  13;
 
@@ -291,6 +313,9 @@ status_t AudioMachineDevice::SetAmpGain(AudioAnalogType::VOLUME_TYPE volume_Type
     }
     if (volume_Type == AudioAnalogType::VOLUME_SPKL || volume_Type == AudioAnalogType::VOLUME_SPKR)
     {
+    #ifdef USING_DUAL_SPK
+        index = 9; //11db for dual spk internal PA forever is 11db
+	#endif
         mAudioAnalogReg->SetAnalogReg(SPK_CON9, index << 8, 0x00000f00);
     }
     return NO_ERROR;
@@ -582,6 +607,10 @@ status_t AudioMachineDevice::AnalogOpen(AudioAnalogType::DEVICE_TYPE DeviceType)
         return NO_ERROR;;
     }
     mBlockAttribute[DeviceType].mEnable = true;
+	#ifdef USING_DUAL_SPK
+	if ((AudioAnalogType::DEVICE_OUT_SPEAKERR == DeviceType) || (AudioAnalogType::DEVICE_OUT_SPEAKERL == DeviceType))
+        DeviceType = AudioAnalogType::DEVICE_OUT_SPEAKER_HEADSET_R;
+	#endif
     switch (DeviceType)
     {
         case AudioAnalogType::DEVICE_OUT_EARPIECER:
@@ -816,7 +845,11 @@ status_t AudioMachineDevice::AnalogOpen(AudioAnalogType::DEVICE_TYPE DeviceType)
             mAudioAnalogReg->SetAnalogReg(0x0604, 0x0014, 0xffff); // speaker gain setting , trim enable , spk enable , class AB or D
 #endif
 
+        #ifdef USING_DUAL_SPK
+            mAudioAnalogReg->SetAnalogReg(0x0612, 0x0900, 0xffff); // SPK gain setting
+        #else
             mAudioAnalogReg->SetAnalogReg(0x0612, 0x0400, 0xffff); // SPK gain setting
+        #endif
             mAudioAnalogReg->SetAnalogReg(0x0616, 0x0f00, 0xffff); // spk output stage enabke and enableAudioClockPortDST
             mAudioAnalogReg->SetAnalogReg(AFUNC_AUD_CON2, 0x0000, 0x0080);
 #endif
@@ -1066,6 +1099,10 @@ status_t AudioMachineDevice::AnalogClose(AudioAnalogType::DEVICE_TYPE DeviceType
     ALOGD("AnalogClose DeviceType = %s", kAudioAnalogDeviceTypeName[DeviceType]);
     mLock.lock();
     mBlockAttribute[DeviceType].mEnable = false;
+   #ifdef USING_DUAL_SPK
+	if ((AudioAnalogType::DEVICE_OUT_SPEAKERR == DeviceType) || (AudioAnalogType::DEVICE_OUT_SPEAKERL == DeviceType))
+        DeviceType = AudioAnalogType::DEVICE_OUT_SPEAKER_HEADSET_R;
+   #endif
     switch (DeviceType)
     {
         case AudioAnalogType::DEVICE_OUT_EARPIECER:
