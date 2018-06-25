@@ -154,7 +154,7 @@ status_t WCNChipController::InitAudioFMInfo()
     }
     mInitAudioFMInfoFlag = true;
 
-#if defined(MTK_FM_SUPPORT)
+#if 1
     // Get audio fm related info from fm driver
     int fd_fm = 0;
     const uint32_t kMaxTryCnt = 30; // max wait 3 sec
@@ -196,7 +196,7 @@ status_t WCNChipController::InitAudioBTInfo()
     }
     mInitAudioBTInfoFlag = true;
 
-#if defined(MTK_BT_SUPPORT)
+#if 1
     // Get audio bt related info from bt driver
     BT_REQ req;
     BT_RESULT result;
@@ -234,7 +234,7 @@ bool WCNChipController::IsFMMergeInterfaceSupported()
 {
     if (mInitAudioFMInfoFlag == false) { InitAudioFMInfo(); }
 
-#if defined(MTK_FM_SUPPORT)
+#if 1
     ALOGD("%s(), mFmAudioInfo.aud_path = %s", __FUNCTION__, kFmAudPathName[mFmAudioInfo.aud_path]);
     ASSERT(mFmAudioInfo.aud_path != FM_AUD_ERR);
     return (mFmAudioInfo.aud_path == FM_AUD_MRGIF) ? true : false;
@@ -247,7 +247,7 @@ bool WCNChipController::IsBTMergeInterfaceSupported()
 {
     if (mInitAudioBTInfoFlag == false) { InitAudioBTInfo(); }
 
-#if defined(MTK_BT_SUPPORT)
+#if 1
     ALOGD("%s(), BTChipHWInterface() = %d", __FUNCTION__, BTChipHWInterface());
     return (BTChipHWInterface() == MERGE_INTERFACE) ? true : false;
 #else // no BT
@@ -258,7 +258,7 @@ bool WCNChipController::IsBTMergeInterfaceSupported()
 
 bool WCNChipController::IsFmChipPadSelConnSys()
 {
-#if defined(MTK_FM_SUPPORT)
+#if 1
     if (mInitAudioFMInfoFlag == false) { InitAudioFMInfo(); }
 
     ALOGD("%s(), mFmAudioInfo.i2s_pad = %s", __FUNCTION__, kFmI2sPadName[mFmAudioInfo.i2s_pad]);
@@ -272,7 +272,7 @@ bool WCNChipController::IsFmChipPadSelConnSys()
 
 bool WCNChipController::IsFmChipUseSlaveMode()
 {
-#if defined(MTK_FM_SUPPORT)
+#if 1
     if (mInitAudioFMInfoFlag == false) { InitAudioFMInfo(); }
 
     ALOGD("%s(), mFmAudioInfo.i2s_info.mode = %s", __FUNCTION__, kFmI2sModeName[mFmAudioInfo.i2s_info.mode]);
@@ -286,7 +286,7 @@ bool WCNChipController::IsFmChipUseSlaveMode()
 
 uint32_t WCNChipController::GetFmChipSamplingRate()
 {
-#if defined(MTK_FM_SUPPORT)
+#if 1
     if (mInitAudioFMInfoFlag == false) { InitAudioFMInfo(); }
 
     ALOGD("%s(), mFmAudioInfo.i2s_info.rate = %s, return %d", __FUNCTION__,
@@ -304,7 +304,7 @@ uint32_t WCNChipController::BTChipHWInterface()
 {
     if (mInitAudioBTInfoFlag == false) { InitAudioBTInfo(); }
 
-#if defined(MTK_BT_SUPPORT)
+#if 1
     return mBTAudioInfo.hw_if;
 #else
     return CVSD_REMOVAL; //0: PCM, 1: I2S, 2: MERGE_INTERFACE, 3: CVSD_REMOVAL
@@ -315,7 +315,7 @@ bool WCNChipController::BTUseCVSDRemoval()
 {
     if (mInitAudioBTInfoFlag == false) { InitAudioBTInfo(); }
 
-#if defined(MTK_BT_SUPPORT)
+#if 1
     return (BTChipHWInterface() == CVSD_REMOVAL) ? true : false;
 #else
     return true;
@@ -324,7 +324,7 @@ bool WCNChipController::BTUseCVSDRemoval()
 
 uint32_t WCNChipController::BTChipSamplingRate()
 {
-#if defined(MTK_BT_SUPPORT)
+#if 1
     if (mInitAudioBTInfoFlag == false) { InitAudioBTInfo(); }
     return mBTAudioInfo.sample_rate; //0:SYNC_8K, 1: SYNC_16K
 #else
@@ -334,7 +334,7 @@ uint32_t WCNChipController::BTChipSamplingRate()
 
 uint32_t WCNChipController::BTChipSyncFormat()
 {
-#if defined(MTK_BT_SUPPORT)
+#if 1
     if (mInitAudioBTInfoFlag == false) { InitAudioBTInfo(); }
     return mBTAudioInfo.sync_format; //0:SHORT_FRAME, 1: LONG_FRAME
 #else
@@ -344,7 +344,7 @@ uint32_t WCNChipController::BTChipSyncFormat()
 
 uint32_t WCNChipController::BTChipSyncLength()
 {
-#if defined(MTK_BT_SUPPORT)
+#if 1
     if (mInitAudioBTInfoFlag == false) { InitAudioBTInfo(); }
     return mBTAudioInfo.bit_len;
 #else
