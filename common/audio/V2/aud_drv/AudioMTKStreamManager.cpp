@@ -72,7 +72,7 @@ AudioMTKStreamManager::AudioMTKStreamManager()
     mBesLoudnessStatus = (result ? true : false);
     ALOGD("AudioMTKStreamManager mBesLoudnessStatus [%d] (From NvRam) \n",mBesLoudnessStatus);
 #else
-    mBesLoudnessStatus = false;
+    mBesLoudnessStatus = true;
     ALOGD("AudioMTKStreamManager mBesLoudnessStatus [%d] (Always) \n",mBesLoudnessStatus);
 #endif
     mBesLoudnessControlCallback = NULL;
